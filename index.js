@@ -323,7 +323,7 @@ app.put("/update_candidat", (req, res) => {
       Type_Candidat,
       date_liv,
       date_exp,
-      categorie_permis,get
+      categorie_permis,
       type_permis,
       newDate_ins,
       Num_permis,
