@@ -1,0 +1,33 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "devStart": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kb-Hicham",
+  "license": "ISC",
+  "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "less-middleware": "^3.1.0",
+    "mysql": "^2.18.1",
+    "node-fetch": "^2.6.1",
+    "nodemon": "^2.0.7",
+    "pdf-creator-node": "^2.2.2",
+    "pdf-lib": "^1.16.0",
+    "pdfkit": "^0.12.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "ts-loader": "^9.2.3",
+    "typescript": "^4.3.4",
+    "utf8": "^3.0.0",
+    "webpack": "^5.41.1",
+    "webpack-cli": "^4.7.2"
+  }
+}
