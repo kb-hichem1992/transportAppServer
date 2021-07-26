@@ -551,7 +551,7 @@ app.get("/file" ,  (req,res)=>{
   displayPDF("test4.pdf",res) ; 
 }); 
 
-app.listen(3001, () => {
+app.listen( process.env.PORT || 3001, () => {
   console.log("it works");
 });
 
