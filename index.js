@@ -3,10 +3,9 @@ const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mysql = require("mysql");
-// files 
-const fs = require('fs');
-const path = require('path');
-
+// files
+const fs = require("fs");
+const path = require("path");
 
 const db = mysql.createPool({
   host: "localhost",
@@ -19,7 +18,7 @@ const db = mysql.createPool({
 module.exports = db;
 
 const pdf = require("./report/pdfGenerator.js");
-const filesPath = '';
+const filesPath = "";
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -32,6 +31,9 @@ app.get("/api/getCon", (req, res) => {
     res.send(result);
   });
 });
+app.get("/HOME", (req, res) => {
+  res.send("Welcome");
+});
 
 app.put("/update_password", (req, res) => {
   const password = req.body.password;
@@ -40,12 +42,7 @@ app.put("/update_password", (req, res) => {
   const numeroAgrement = req.body.numeroAgrement;
   db.query(
     "UPDATE user SET `PASSWORD`= ? WHERE `USERNAME`= ? and `ADMIN`= ? and `NUMERO_AGREMENT`= ?;",
-    [
-      password,
-      username,
-      admin,
-      numeroAgrement,
-    ],
+    [password, username, admin, numeroAgrement],
     (err, result) => {
       if (err) {
         console.log(err);
@@ -113,13 +110,14 @@ app.get("/api/get_candidat", (req, res) => {
     res.send(result);
   });
 }); */
-app.get( "/api/get_candidat_form/:numeroFormation/:numeroAgrement/:groupe",
+app.get(
+  "/api/get_candidat_form/:numeroFormation/:numeroAgrement/:groupe",
   (req, res) => {
     const numeroFormation = req.params.numeroFormation;
     const numeroAgrement = req.params.numeroAgrement;
     const groupe = req.params.groupe;
     db.query(
-      "SELECT passe.NUMERO_FORMATION, passe.NUMERO_AGREMENT, passe.NUM_PERMIS,passe.DATE_INS, candidat.NUM_INS, candidat.NOM_CANDIDAT, candidat.PRENOM_CANDIDAT, candidat.PRENOM_PERE, formation.TYPE_FORMATION, passe.GROUPE, formation.DEBUT, formation.FIN,passe.REMARQUE, passe.NOTE, passe.BREVET from ((passe inner join candidat on candidat.NUM_INS = passe.NUM_INS and candidat.NUM_PERMIS = passe.NUM_PERMIS ) inner join formation on formation.NUMERO_FORMATION = passe.NUMERO_FORMATION and formation.NUMERO_AGREMENT = passe.NUMERO_AGREMENT and formation.GROUPE = passe.GROUPE ) where passe.NUMERO_FORMATION= ? and passe.NUMERO_AGREMENT= ? and passe.GROUPE = ?",
+      "SELECT  passe.NUMERO,  passe.NUMERO_FORMATION, passe.NUMERO_AGREMENT, passe.NUM_PERMIS,passe.DATE_INS, candidat.NUM_INS, candidat.NOM_CANDIDAT, candidat.PRENOM_CANDIDAT, candidat.PRENOM_PERE, candidat.CATEGORIE_PERMIS,candidat.ADRESSE_CANDIDAT, candidat.DATE_NAIS_CANDIDAT, candidat.LIEU_NAIS_CANDIDAT, candidat.DATE_LIV_PERMIS, formation.TYPE_FORMATION, passe.GROUPE, formation.DEBUT, formation.FIN,passe.REMARQUE, passe.NOTE, passe.BREVET, passe.PRINT from ((passe inner join candidat on candidat.NUM_INS = passe.NUM_INS and candidat.NUM_PERMIS = passe.NUM_PERMIS ) inner join formation on formation.NUMERO_FORMATION = passe.NUMERO_FORMATION and formation.NUMERO_AGREMENT = passe.NUMERO_AGREMENT and formation.GROUPE = passe.GROUPE ) where passe.NUMERO_FORMATION= ? and passe.NUMERO_AGREMENT= ? and passe.GROUPE = ?",
       [numeroFormation, numeroAgrement, groupe],
       (err, result) => {
         res.send(result);
@@ -127,6 +125,34 @@ app.get( "/api/get_candidat_form/:numeroFormation/:numeroAgrement/:groupe",
     );
   }
 );
+app.put("/update_groupe_number", (req, res) => {
+  const number = req.body.number;
+  const numeroCandidat = req.body.numeroCandidat;
+  const numeroFormation = req.body.numeroFormation;
+  const GROUPE = req.body.GROUPE;
+  const numeroAgrement = req.body.numeroAgrement;
+  const Num_permis = req.body.Num_permis;
+  const dateins = req.body.dateins;
+  db.query(
+    "UPDATE passe SET `NUMERO`= ? WHERE `NUM_INS`= ? and NUM_PERMIS = ? and DATE_INS = ? and `NUMERO_FORMATION`= ? and `GROUPE`= ? and `NUMERO_AGREMENT` = ?  ;",
+    [
+      number,
+      numeroCandidat,
+      Num_permis,
+      dateins,
+      numeroFormation,
+      GROUPE,
+      numeroAgrement,
+    ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("Values updated");
+      }
+    }
+  );
+});
 app.put("/update_passe", (req, res) => {
   const remarque = req.body.remarque;
   const note = req.body.note;
@@ -183,13 +209,23 @@ app.put("/Printed", (req, res) => {
     }
   );
 });
-app.get("/api/get_brevet", (req, res) => {
+app.get("/api/get_brevet/:numeroAgrement", (req, res) => {
+  const numeroAgrement = req.params.numeroAgrement;
   const sqlquery =
-    "SELECT passe.PRINT, passe.BREVET, candidat.NOM_CANDIDAT, candidat.PRENOM_CANDIDAT, candidat.PRENOM_PERE, passe.LIV_BREVET, passe.EXP_BREVET, formation.TYPE_FORMATION, passe.GROUPE,passe.NUMERO_FORMATION, passe.NUM_INS, passe.NUM_PERMIS, passe.DATE_INS, passe.NUMERO_AGREMENT, passe.GROUPE FROM ((passe INNER JOIN candidat ON candidat.NUM_INS = passe.NUM_INS AND candidat.DATE_INS = passe.DATE_INS AND candidat.NUM_PERMIS = passe.NUM_PERMIS) INNER JOIN formation ON formation.NUMERO_FORMATION = passe.NUMERO_FORMATION  AND formation.NUMERO_AGREMENT = passe.NUMERO_AGREMENT AND formation.GROUPE = passe.GROUPE) where passe.BREVET != '';";
-  db.query(sqlquery, (err, result) => {
+    "SELECT passe.PRINT, passe.BREVET, candidat.NOM_CANDIDAT, candidat.PRENOM_CANDIDAT, passe.DATE_EMISSION, passe.LIV_BREVET, passe.EXP_BREVET, formation.TYPE_FORMATION, passe.GROUPE,passe.NUMERO_FORMATION, passe.NUM_INS, passe.NUM_PERMIS, passe.DATE_INS, passe.NUMERO_AGREMENT, passe.GROUPE FROM ((passe INNER JOIN candidat ON candidat.NUM_INS = passe.NUM_INS AND candidat.DATE_INS = passe.DATE_INS AND candidat.NUM_PERMIS = passe.NUM_PERMIS) INNER JOIN formation ON formation.NUMERO_FORMATION = passe.NUMERO_FORMATION  AND formation.NUMERO_AGREMENT = passe.NUMERO_AGREMENT AND formation.GROUPE = passe.GROUPE) where passe.NUMERO_AGREMENT = ? and passe.BREVET != '';";
+  db.query(sqlquery, [numeroAgrement], (err, result) => {
     res.send(result);
   });
 });
+app.get("/api/Passing_List/:numeroAgrement", (req, res) => {
+  const numeroAgrement = req.params.numeroAgrement;
+  const sqlquery =
+    "SELECT passe.NOTE, passe.REMARQUE ,candidat.DATE_NAIS_CANDIDAT,passe.BREVET, candidat.NOM_CANDIDAT, candidat.PRENOM_CANDIDAT, candidat.PRENOM_PERE, passe.LIV_BREVET, passe.EXP_BREVET, formation.TYPE_FORMATION, passe.GROUPE,passe.NUMERO_FORMATION, passe.NUM_INS, passe.NUM_PERMIS, passe.DATE_INS, passe.NUMERO_AGREMENT, passe.GROUPE FROM ((passe INNER JOIN candidat ON candidat.NUM_INS = passe.NUM_INS AND candidat.DATE_INS = passe.DATE_INS AND candidat.NUM_PERMIS = passe.NUM_PERMIS) INNER JOIN formation ON formation.NUMERO_FORMATION = passe.NUMERO_FORMATION  AND formation.NUMERO_AGREMENT = passe.NUMERO_AGREMENT AND formation.GROUPE = passe.GROUPE) where passe.NUMERO_AGREMENT = ?;";
+  db.query(sqlquery, [numeroAgrement], (err, result) => {
+    res.send(result);
+  });
+});
+
 app.get("/api/get_passe", (req, res) => {
   const sqlquery = "SELECT * FROM passe";
   db.query(sqlquery, (err, result) => {
@@ -198,8 +234,6 @@ app.get("/api/get_passe", (req, res) => {
 });
 app.put("/insert_brevet", (req, res) => {
   const NumeroBrevet = req.body.NumeroBrevet;
-  const LivBrevet = req.body.LivBrevet;
-  const ExpBrevet = req.body.ExpBrevet;
   const numeroCandidat = req.body.numeroCandidat;
   const Date_ins = req.body.Date_ins;
   const Num_permis = req.body.Num_permis;
@@ -208,17 +242,50 @@ app.put("/insert_brevet", (req, res) => {
   const GROUPE = req.body.GROUPE;
 
   db.query(
-    "UPDATE passe SET `BREVET`= ?, `LIV_BREVET`= ? , `EXP_BREVET` = ? WHERE `NUM_INS`= ? and `DATE_INS` = ? and `NUM_PERMIS` =? and `NUMERO_FORMATION`= ? and `NUMERO_AGREMENT`= ? and `GROUPE`= ? ;",
+    "UPDATE passe SET `BREVET`= ? WHERE `NUM_INS`= ? and `DATE_INS` = ? and `NUM_PERMIS` =? and `NUMERO_FORMATION`= ? and `NUMERO_AGREMENT`= ? and `GROUPE`= ? ;",
     [
       NumeroBrevet,
-      LivBrevet,
-      ExpBrevet,
       numeroCandidat,
       Date_ins,
       Num_permis,
       numeroFormation,
       numeroAgrement,
       GROUPE,
+    ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("Values updated");
+      }
+    }
+  );
+});
+app.put("/insert_Date_brevet", (req, res) => {
+  const NumeroBrevet = req.body.NumeroBrevet;
+  const numeroCandidat = req.body.numeroCandidat;
+  const Date_ins = req.body.Date_ins;
+  const Num_permis = req.body.Num_permis;
+  const numeroFormation = req.body.numeroFormation;
+  const numeroAgrement = req.body.numeroAgrement;
+  const GROUPE = req.body.GROUPE;
+  const LivBrevt = req.body.LivBrevt;
+  const ExpBrevet = req.body.ExpBrevet;
+  const Emission = req.body.Emission;
+
+  db.query(
+    "UPDATE passe SET LIV_BREVET = ?, EXP_BREVET= ?, DATE_EMISSION = ? WHERE `NUM_INS`= ? and `DATE_INS` = ? and `NUM_PERMIS` =? and `NUMERO_FORMATION`= ? and `NUMERO_AGREMENT`= ? and `GROUPE`= ?  and BREVET =?;",
+    [
+      LivBrevt,
+      ExpBrevet,
+      Emission,
+      numeroCandidat,
+      Date_ins,
+      Num_permis,
+      numeroFormation,
+      numeroAgrement,
+      GROUPE,
+      NumeroBrevet,
     ],
     (err, result) => {
       if (err) {
@@ -257,12 +324,11 @@ app.post("/Add_condidat", (req, res) => {
   const Type_Candidat = req.body.Type_Candidat;
   const Num_permis = req.body.Num_permis;
   const date_liv = req.body.date_liv;
-  const date_exp = req.body.date_exp;
   const type_permis = req.body.type_permis;
   const categorie_permis = req.body.categorie_permis;
 
   db.query(
-    "INSERT INTO candidat (`NUM_INS`, `DATE_INS`,`NOM_CANDIDAT`, `PRENOM_CANDIDAT`, `DATE_NAIS_CANDIDAT`, `LIEU_NAIS_CANDIDAT`, `NIVEAU_SCOL_CANDIDAT`, `ADRESSE_CANDIDAT`, `PRENOM_PERE`, `SEX_CONDIDAT`,`TYPE_CANDIDAT`,`NUM_PERMIS`, `DATE_LIV_PERMIS`, `DATE_EXP_PERMIS`, `TYPE_PERMIS`, `CATEGORIE_PERMIS`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO candidat (`NUM_INS`, `DATE_INS`,`NOM_CANDIDAT`, `PRENOM_CANDIDAT`, `DATE_NAIS_CANDIDAT`, `LIEU_NAIS_CANDIDAT`, `NIVEAU_SCOL_CANDIDAT`, `ADRESSE_CANDIDAT`, `PRENOM_PERE`, `SEX_CONDIDAT`,`TYPE_CANDIDAT`,`NUM_PERMIS`, `DATE_LIV_PERMIS`, `TYPE_PERMIS`, `CATEGORIE_PERMIS`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
     [
       numeroCandidat,
       Date_ins,
@@ -277,7 +343,6 @@ app.post("/Add_condidat", (req, res) => {
       Type_Candidat,
       Num_permis,
       date_liv,
-      date_exp,
       type_permis,
       categorie_permis,
     ],
@@ -293,6 +358,7 @@ app.post("/Add_condidat", (req, res) => {
 
 app.put("/update_candidat", (req, res) => {
   const numeroCandidat = req.body.numeroCandidat;
+  const numins = req.body.numins;
   const Date_ins = req.body.Date_ins;
   const Nom = req.body.Nom;
   const Prénom = req.body.Prénom;
@@ -305,13 +371,13 @@ app.put("/update_candidat", (req, res) => {
   const Type_Candidat = req.body.Type_Candidat;
   const Num_permis = req.body.Num_permis;
   const date_liv = req.body.date_liv;
-  const date_exp = req.body.date_exp;
   const type_permis = req.body.type_permis;
   const categorie_permis = req.body.categorie_permis;
-  const newDate_ins = req.body.newDate_ins;
+  const DATE_INS = req.body.DATE_INS;
   db.query(
-    "UPDATE candidat SET `NOM_CANDIDAT`=?, `PRENOM_CANDIDAT`= ?, `DATE_NAIS_CANDIDAT`=? , `LIEU_NAIS_CANDIDAT`= ?, `NIVEAU_SCOL_CANDIDAT`= ?, `ADRESSE_CANDIDAT`= ?, `PRENOM_PERE`= ?, `SEX_CONDIDAT` = ?, `TYPE_CANDIDAT`= ?,`DATE_LIV_PERMIS` = ?, `DATE_EXP_PERMIS` = ?, `CATEGORIE_PERMIS` = ?, `TYPE_PERMIS` = ?, `DATE_INS` = ?   WHERE  `NUM_PERMIS` = ? and `DATE_INS` = ? and `NUM_INS` = ? ;",
+    "UPDATE candidat SET `NUM_INS`=?,  `NOM_CANDIDAT`=?, `PRENOM_CANDIDAT`= ?, `DATE_NAIS_CANDIDAT`=? , `LIEU_NAIS_CANDIDAT`= ?, `NIVEAU_SCOL_CANDIDAT`= ?, `ADRESSE_CANDIDAT`= ?, `PRENOM_PERE`= ?, `SEX_CONDIDAT` = ?, `TYPE_CANDIDAT`= ?,`DATE_LIV_PERMIS` = ?, `CATEGORIE_PERMIS` = ?, `TYPE_PERMIS` = ?, `DATE_INS` = ?   WHERE  `NUM_PERMIS` = ? and `DATE_INS` = ? and `NUM_INS` = ? ;",
     [
+      numins,
       Nom,
       Prénom,
       Date_naissance,
@@ -322,14 +388,31 @@ app.put("/update_candidat", (req, res) => {
       Sexe,
       Type_Candidat,
       date_liv,
-      date_exp,
       categorie_permis,
       type_permis,
-      newDate_ins,
-      Num_permis,
       Date_ins,
+      Num_permis,
+      DATE_INS,
       numeroCandidat,
     ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+app.put("/update_NUMINS", (req, res) => {
+  const numeroCandidat = req.body.numeroCandidat;
+  const newNum = req.body.newNum;
+  const Num_permis = req.body.Num_permis;
+  const Date_ins = req.body.Date_ins;
+
+  db.query(
+    "UPDATE candidat SET `NUM_INS`=? WHERE  `NUM_PERMIS` = ? and `DATE_INS` = ? and `NUM_INS` = ? ;",
+    [newNum, Num_permis, Date_ins, numeroCandidat],
     (err, result) => {
       if (err) {
         console.log(err);
@@ -414,82 +497,75 @@ app.delete(
     );
   }
 );
-app.post( "/delete_passe",
-  (req, res) => {
-    const numeroCandidat = req.body.numeroCandidat;
-    const Date_ins = req.body.Date_ins;
-    const Num_permis = req.body.Num_permis;
-    const numeroFormation = req.body.numeroFormation;
-    const groupe = req.body.groupe;
-    const numeroAgrement = req.body.numeroAgrement;
-    db.query(
-      "DELETE FROM passe WHERE `NUM_INS`= ? and `DATE_INS`= ? and `NUM_PERMIS`= ? and `NUMERO_FORMATION`= ? and`GROUPE`= ? and`NUMERO_AGREMENT`= ?;",
-      [numeroCandidat,Date_ins,Num_permis,numeroFormation,groupe, numeroAgrement],
-      (err, result) => {
-        if (err) {
-          console.log(err);
-        } else {
-          res.send(result);
-        }
+app.post("/delete_passe", (req, res) => {
+  const numeroCandidat = req.body.numeroCandidat;
+  const Date_ins = req.body.Date_ins;
+  const Num_permis = req.body.Num_permis;
+  const numeroFormation = req.body.numeroFormation;
+  const groupe = req.body.groupe;
+  const numeroAgrement = req.body.numeroAgrement;
+  db.query(
+    "DELETE FROM passe WHERE `NUM_INS`= ? and `DATE_INS`= ? and `NUM_PERMIS`= ? and `NUMERO_FORMATION`= ? and`GROUPE`= ? and`NUMERO_AGREMENT`= ?;",
+    [
+      numeroCandidat,
+      Date_ins,
+      Num_permis,
+      numeroFormation,
+      groupe,
+      numeroAgrement,
+    ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
       }
-    );
-  }
-);
+    }
+  );
+});
 
 // DIPLOME GENERATION BY ID_INSC ID_FORMATION  ID_PERMIS DATE_INS NUM_AGR FROM PASSE TABLE
 app.get(
-  "/report/DIPLOME/:idinn/:idformm/:idperm/:dateins/:numagr/:groupe",
+  "/report/DIPLOME/:idinn/:idformm/:dateins/:numagr/:groupe",
   (req, res) => {
     var fullUrl = req.protocol + "://" + req.get("host");
     const idinn = req.params.idinn;
     const idformm = req.params.idformm;
-    const idperm = req.params.idperm;
+
     const dateins = req.params.dateins;
     const numagr = req.params.numagr;
-    const groupe=req.params.groupe;
+    const groupe = req.params.groupe;
 
     pdf.generatepdf(
       idinn,
       idformm,
-      idperm,
       dateins,
       numagr,
       groupe,
       fullUrl,
       function (dt) {
         //console.log(dt);
-         var filen=idinn+idformm+idperm+dateins+numagr+groupe+".pdf";
-       displayPDF(filen , res)
+        var filen = idinn + idformm + dateins + numagr + groupe + ".pdf";
+        displayPDF(filen, res);
       }
     );
   }
 );
 
 // EVALUATION GENERATION BY ID_INSC ID_FORMATION  ID_PERMIS DATE_INS NUM_AGR FROM PASSE TABLE
-app.get(
-  "/report/EVALUATION/:idin/:idperm/:dateins",
-  (req, res) => {
-    var fullUrl = req.protocol + "://" + req.get("host");
+app.get("/report/EVALUATION/:idin/:dateins", (req, res) => {
+  var fullUrl = req.protocol + "://" + req.get("host");
 
-    const idin = req.params.idin;
-    
-    const idperm = req.params.idperm;
-    const dateins = req.params.dateins;
-    
+  const idin = req.params.idin;
 
-    pdf.generatepdf2(
-      idin,
-      idperm,
-      dateins,
-      fullUrl,
-      function (dt) {
-        //console.log(dt);
-        var filen=idin+idperm+dateins+".pdf";
-        displayPDF(filen , res)
-      }
-    );
-  }
-);
+  const dateins = req.params.dateins;
+
+  pdf.generatepdf2(idin, dateins, fullUrl, function (dt) {
+    //console.log(dt);
+    var filen = idin + dateins + ".pdf";
+    displayPDF(filen, res);
+  });
+});
 
 app.post("/Add_passe", (req, res) => {
   const numeroCandidat = req.body.numeroCandidat;
@@ -546,19 +622,17 @@ app.post("/add_travail", (req, res) => {
   );
 });
 
-//show  pdf file  in browser 
-app.get("/file" ,  (req,res)=>{
-  displayPDF("test4.pdf",res) ; 
-}); 
+//show  pdf file  in browser
+app.get("/file", (req, res) => {
+  displayPDF("test4.pdf", res);
+});
 
-app.listen( process.env.PORT || 3001, () => {
+app.listen(3001, () => {
   console.log("it works");
 });
 
-
-const displayPDF = (filename  , res) => {
+const displayPDF = (filename, res) => {
   const inputPath = path.resolve(__dirname, filesPath, filename);
-  
 
   fs.readFile(inputPath, function (err, data) {
     if (err) {
@@ -566,9 +640,8 @@ const displayPDF = (filename  , res) => {
       res.end(`Error getting the file: ${err}.`);
     } else {
       const ext = path.parse(inputPath).ext;
-      res.setHeader('Content-type','application/pdf');
+      res.setHeader("Content-type", "application/pdf");
       res.end(data);
     }
   });
 };
-

@@ -82,10 +82,10 @@ function convert(word)
 }
 
 
-async function generatepdf(idin,idform,idPerm,dateins,numagr,grp,uurl,fn) {
+async function generatepdf(idin,idform,dateins,numagr,grp,uurl,fn) {
 
  
-  data.GetDiplomeData(idin,idform,idPerm,dateins,numagr,grp,async function(result){
+  data.GetDiplomeData(idin,idform,dateins,numagr,grp,async function(result){
 	   
 	   
   var NomPeren=result[0].NOM_CANDIDAT+" "+result[0].PRENOM_CANDIDAT;	   
@@ -194,7 +194,7 @@ for (let ob in F1) {
       const pdfBytesToSend = await pdfDoc.saveAsBase64({ dataUri: true });
 
       const pdfBytes = await pdfDoc.save();
-	  var fileN="./"+idin+idform+idPerm+dateins+numagr+grp+".pdf";
+	  var fileN="./"+idin+idform+dateins+numagr+grp+".pdf";
       fs.writeFileSync(fileN, pdfBytes);
 
       fn(pdfBytesToSend);
@@ -202,63 +202,75 @@ for (let ob in F1) {
   );
 }
 
-async function generatepdf2(idin,idPerm, dateins,uurl, fn) {
+async function generatepdf2(idin,dateins,uurl, fn) {
   data.GetEvaluationData(
     idin,
-    idPerm,
     dateins,
     
     async function (result) {
-      /*
-  
-  var FICH1={"NOM":{"text":"اللقب:","x":520,"y":503},
-            "PRENOM":{"text":"الاسم:","x":520,"y":473},
-			"DATE_NAI":{"text":"تاريخ و مكان الازدياد :","x":436,"y":450},
-			"ARESSE":{"text":"العنوان:","x":510,"y":426},
-			"DATE_INS":{"text":"مسجل بتاريخ","x":480,"y":401},
-			"NUM_INS":{"text":"تحت رقم","x":210,"y":401},
+      
+  /*
+  var FICH1={"NOM":{"text":"اللقب:","x":522,"y":506},
+            "PRENOM":{"text":"الاسم:","x":522,"y":476},
+			"DATE_NAI":{"text":"تاريخ و مكان الازدياد :","x":435,"y":452},
+			"ARESSE":{"text":"العنوان:","x":513,"y":428},
+			"DATE_INS":{"text":"مسجل بتاريخ:","x":482,"y":404},
+			"NUM_INS":{"text":"تحت رقم:","x":210,"y":404},
+			"CATEGORIE":{"text":"صنف رخصة السياقة:","x":441,"y":380}
 		
            };
 
-    */
-
+   */
+    var sz=8; 
+    if(result[0].CATEGORIE_PERMIS.length>44)
+		sz=5;
+ 
+    
+  
       var FICH1 = {
         NOM: {
           text: result[0].NOM_CANDIDAT,
           x: 438 - Math.max(0, result[0].NOM_CANDIDAT.length - 8) * 7,
-          y: 503,
+          y: 506,
         },
         PRENOM: {
           text: result[0].PRENOM_CANDIDAT,
           x: 438 - Math.max(0, result[0].PRENOM_CANDIDAT.length - 8) * 7,
-          y: 473,
+          y: 476,
         },
-        DATE_NAI: { text: result[0].DATE_NAIS_CANDIDAT, x: 330, y: 450 },
+        DATE_NAI: { text: result[0].DATE_NAIS_CANDIDAT, x: 330, y: 452 },
         LIEU_NAI: {
           text: result[0].LIEU_NAIS_CANDIDAT,
           x: 270 - Math.max(0, result[0].LIEU_NAIS_CANDIDAT.length - 8) * 8,
-          y: 450,
+          y: 452,
         },
         ARESSE: {
           text: convert(result[0].ADRESSE_CANDIDAT),
           x: 410 - Math.max(0, result[0].ADRESSE_CANDIDAT.length - 10) * 7,
-          y: 426,
+          y: 428,
         },
-        DATE_INS: { text: result[0].DATE_INS, x: 370, y: 401 },
+        DATE_INS: { text: result[0].DATE_INS, x: 369, y: 404 },
         NUM_INS: {
           text: result[0].NUM_INS,
           x: 130 - Math.max(0, result[0].NUM_INS.length - 5) * 7,
-          y: 401,
+          y: 404,
         },
+		CATEGORIE_PERMIS: {
+          text: result[0].CATEGORIE_PERMIS,
+          x: 290- Math.max(0, result[0].CATEGORIE_PERMIS.length - 15) * sz,
+          y: 380,
+        },
+		
+		
       };
-
-      const url = uurl + "/vierge2.pdf";
+ 
+      const url = uurl + "/eval.pdf";
 
       const existingPdfBytes = await fetch(url).then((res) =>
         res.arrayBuffer()
       );
 
-      const ubuntuFontBytes = await fetch(uurl + "/Cairo-Regular.ttf").then(
+      const ubuntuFontBytes = await fetch(uurl + "/times.ttf").then(
         (res) => res.arrayBuffer()
       );
 
@@ -272,21 +284,22 @@ async function generatepdf2(idin,idPerm, dateins,uurl, fn) {
       const firstPage = pages[0];
       const { width, height } = firstPage.getSize();
 
-      console.log(width);
-      console.log(height);
+      console.log(result[0].CATEGORIE_PERMIS.length);
 
       var F1 = JSON.parse(JSON.stringify(FICH1));
 
       for (let ob in F1) {
         var textSize = 16;
-
+        
+        if(sz==5) 		
+		    textSize = 12;
         var textHeight = helveticaFont.heightAtSize(textSize);
-
+         
         var textWidth = helveticaFont.widthOfTextAtSize(
           F1[ob]["text"],
           textSize
         );
-
+         
         firstPage.drawText(F1[ob]["text"], {
           x: F1[ob]["x"],
           y: F1[ob]["y"],
@@ -301,7 +314,7 @@ async function generatepdf2(idin,idPerm, dateins,uurl, fn) {
 
       const pdfBytes = await pdfDoc.save();
 	  //idin,idPerm, dateins, numagr
-	  var filename="./"+idin+idPerm+dateins+".pdf";
+	  var filename="./"+idin+dateins+".pdf";
       fs.writeFileSync(filename, pdfBytes);
 
       fn(pdfBytesToSend);
@@ -309,14 +322,5 @@ async function generatepdf2(idin,idPerm, dateins,uurl, fn) {
   );
 }
 
-/*
-
- module.exports.generatepdf = (idin,idform,idPerm,dateins,numagr,uurl)=>{
- 
- 
- GenerationFich1(idin,idform,idPerm,dateins,numagr,uurl);
-//.catch(err => console.log(err))
-}
-*/
 
 module.exports = { generatepdf: generatepdf, generatepdf2: generatepdf2 };
