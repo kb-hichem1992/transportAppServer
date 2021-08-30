@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 // files
 const fs = require("fs");
 const path = require("path");
@@ -10,7 +10,7 @@ const path = require("path");
 const db = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "",
   database: "bdd",
   dateStrings: true,
 });
@@ -28,6 +28,10 @@ app.use(express.static("report/fichier"));
 app.get("/api/getCon", (req, res) => {
   const sqlquery = "SELECT etat FROM connection where id ='1'";
   db.query(sqlquery, (err, result) => {
+    if (err){
+      console.log(err);
+      return res.sendStatus(500);
+    }
     res.send(result);
   });
 });
@@ -69,6 +73,7 @@ app.get("/api/getUser/:username/:password", (req, res) => {
     (err, result) => {
       if (err) {
         console.log(err);
+        return res.sendStatus(500);
       } else {
         res.send(result);
       }
@@ -83,6 +88,7 @@ app.get("/api/getCentre/:numeroAgrement", (req, res) => {
     (err, result) => {
       if (err) {
         console.log(err);
+        return res.sendStatus(500);
       } else {
         res.send(result);
       }
