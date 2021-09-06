@@ -2,16 +2,16 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 // files
 const fs = require("fs");
 const path = require("path");
 
 const db = mysql.createPool({
   host: "localhost",
-  user: "root",
-  password: "root",
-  database: "bdd",
+  user: "transport_app",
+  password: "B`;EfSsa*}5}",
+  database: "transport_app",
   dateStrings: true,
 });
 
@@ -229,7 +229,10 @@ app.get("/api/Passing_List/:numeroAgrement", (req, res) => {
 app.get("/api/get_passe", (req, res) => {
   const sqlquery = "SELECT * FROM passe";
   db.query(sqlquery, (err, result) => {
+    console.log(err);
+   console.log(result);
     res.send(result);
+
   });
 });
 app.put("/insert_brevet", (req, res) => {
