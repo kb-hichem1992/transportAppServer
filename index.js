@@ -9,9 +9,15 @@ const path = require("path");
 
 const db = mysql.createPool({
   host: "localhost",
+<<<<<<< HEAD
   user: "transport_app",
   password: "B`;EfSsa*}5}",
   database: "transport_app",
+=======
+  user: "root",
+  password: "",
+  database: "bdd",
+>>>>>>> 7daa4119e650e8bedd5ff2228f0cb1613eff5a75
   dateStrings: true,
 });
 
@@ -28,6 +34,10 @@ app.use(express.static("report/fichier"));
 app.get("/api/getCon", (req, res) => {
   const sqlquery = "SELECT etat FROM connection where id ='1'";
   db.query(sqlquery, (err, result) => {
+    if (err){
+      console.log(err);
+      return res.sendStatus(500);
+    }
     res.send(result);
   });
 });
@@ -69,6 +79,7 @@ app.get("/api/getUser/:username/:password", (req, res) => {
     (err, result) => {
       if (err) {
         console.log(err);
+        return res.sendStatus(500);
       } else {
         res.send(result);
       }
@@ -83,6 +94,7 @@ app.get("/api/getCentre/:numeroAgrement", (req, res) => {
     (err, result) => {
       if (err) {
         console.log(err);
+        return res.sendStatus(500);
       } else {
         res.send(result);
       }
