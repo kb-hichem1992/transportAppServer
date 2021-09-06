@@ -9,9 +9,15 @@ const path = require("path");
 
 const db = mysql.createPool({
   host: "localhost",
+<<<<<<< HEAD
+  user: "transport_app",
+  password: "B`;EfSsa*}5}",
+  database: "transport_app",
+=======
   user: "root",
   password: "",
   database: "bdd",
+>>>>>>> 7daa4119e650e8bedd5ff2228f0cb1613eff5a75
   dateStrings: true,
 });
 
@@ -235,7 +241,10 @@ app.get("/api/Passing_List/:numeroAgrement", (req, res) => {
 app.get("/api/get_passe", (req, res) => {
   const sqlquery = "SELECT * FROM passe";
   db.query(sqlquery, (err, result) => {
+    console.log(err);
+   console.log(result);
     res.send(result);
+
   });
 });
 app.put("/insert_brevet", (req, res) => {
