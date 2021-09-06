@@ -18,6 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
+SET foreign_key_checks = 0;
+drop table candidat;
+drop table centre;
+drop table formation;
+drop table ligne;
+drop table operateur, passe;
+drop table per_circule, travail, user, vehicule;
 --
 -- Base de données :  `bdd`
 --
@@ -1022,6 +1029,8 @@ ALTER TABLE `user`
 ALTER TABLE `vehicule`
   ADD CONSTRAINT `FK_APPARTIENT` FOREIGN KEY (`NOM_OP`) REFERENCES `operateur` (`NOM_OP`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
+
+SET foreign_key_checks = 1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
