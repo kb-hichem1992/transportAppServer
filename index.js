@@ -9,18 +9,12 @@ const path = require("path");
 
 const db = mysql.createPool({
   host: "localhost",
-<<<<<<< HEAD
   // user: "transport_app",
   //password: "B`;EfSsa*}5}",
   // database: "transport_app",
   user: "root",
   password: "root",
   database: "bdd",
-=======
-  user: "transport_app",
-  password: "B`;EfSsa*}5}",
-  database: "transport_app",
->>>>>>> c4c321bc3d7ed2c399b04c96bfd18337cec39ab8
   dateStrings: true,
 });
 
