@@ -12,7 +12,7 @@ const db = mysql.createPool({
   user: "transport_app",
   password: "B`;EfSsa*}5}",
   database: "transport_app",
-  dateStrings: true,
+ dateStrings: true,
 });
 
 module.exports = db;
