@@ -25,10 +25,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("report/fichier"));
 
+
+
+
 app.get("/api/getCon", (req, res) => {
   const sqlquery = "SELECT etat FROM connection where id ='1'";
   db.query(sqlquery, (err, result) => {
-    if (err){
+    if (err) {
       console.log(err);
       return res.sendStatus(500);
     }
@@ -154,7 +157,7 @@ app.put("/update_groupe_number", (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("Values updated");
+        res.send(result);
       }
     }
   );
@@ -184,7 +187,7 @@ app.put("/update_passe", (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("Values updated");
+        res.send(result);
       }
     }
   );
@@ -210,7 +213,7 @@ app.put("/Printed", (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("Values updated");
+        res.send(result);
       }
     }
   );
@@ -236,9 +239,8 @@ app.get("/api/get_passe", (req, res) => {
   const sqlquery = "SELECT * FROM passe";
   db.query(sqlquery, (err, result) => {
     console.log(err);
-   console.log(result);
+    console.log(result);
     res.send(result);
-
   });
 });
 app.put("/insert_brevet", (req, res) => {
@@ -265,7 +267,7 @@ app.put("/insert_brevet", (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("Values updated");
+        res.send(result);
       }
     }
   );
@@ -300,7 +302,7 @@ app.put("/insert_Date_brevet", (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("Values updated");
+        res.send(result);
       }
     }
   );
@@ -359,7 +361,7 @@ app.post("/Add_condidat", (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("Values Inserted");
+        res.send(result);
       }
     }
   );
@@ -461,7 +463,7 @@ app.post("/Add_formation", (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("Values Inserted");
+        res.send(result);
       }
     }
   );
