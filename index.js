@@ -99,11 +99,17 @@ app.get("/api/getCentre/:numeroAgrement", (req, res) => {
   );
 });
 
-app.get("/api/get_form", (req, res) => {
+app.get("/api/get_form/:numeroAgrement", (req, res) => {
+  const numeroAgrement = req.params.numeroAgrement;
   const sqlquery =
-    "select formation.NUMERO_FORMATION, formation.GROUPE, formation.NUMERO_AGREMENT,formation.TYPE_FORMATION, formation.DEBUT, formation.FIN from formation;";
-  db.query(sqlquery, (err, result) => {
-    res.send(result);
+    "select formation.NUMERO_FORMATION, formation.GROUPE, formation.NUMERO_AGREMENT,formation.TYPE_FORMATION, formation.DEBUT, formation.FIN from formation where formation.NUMERO_AGREMENT =? ;";
+  db.query(sqlquery, [numeroAgrement], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.sendStatus(500);
+    } else {
+      res.send(result);
+    }
   });
 });
 app.get("/api/get_candidat", (req, res) => {
