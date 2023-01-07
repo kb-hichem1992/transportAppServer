@@ -37,12 +37,12 @@ app.use(cors());
 
 const db = mysql.createPool({
   host: "localhost",
-  /*   user: "transport_app",
+  user: "transport_app",
   password: "B`;EfSsa*}5}",
-  database: "transport_app", */
-  user: "root",
+  database: "transport_app", 
+  /* user: "root",
   password: "root",
-  database: "bdd",
+  database: "bdd", */
   dateStrings: true,
 });
 
