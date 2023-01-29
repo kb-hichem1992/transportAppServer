@@ -37,12 +37,12 @@ app.use(cors());
 
 const db = mysql.createPool({
   host: "localhost",
-  user: "transport_app",
+  /* user: "transport_app",
   password: "B`;EfSsa*}5}",
-  database: "transport_app", 
-  /* user: "root",
+  database: "transport_app", */ 
+  user: "root",
   password: "root",
-  database: "bdd", */
+  database: "bdd", 
   dateStrings: true,
 });
 
@@ -823,6 +823,7 @@ app.get("/api/get_veh_voyag", (req, res) => {
 app.post("/Add_condidat", (req, res) => {
   const numeroCandidat = req.body.numeroCandidat;
   const Date_ins = req.body.Date_ins;
+  const num_Nationnal = req.body.num_Nationnal;
   const Nom = req.body.Nom;
   const Prénom = req.body.Prénom;
   const Date_naissance = req.body.Date_naissance;
@@ -839,10 +840,11 @@ app.post("/Add_condidat", (req, res) => {
   const createur = req.body.createur;
 
   db.query(
-    "INSERT INTO candidat (`NUM_INS`, `DATE_INS`,`NOM_CANDIDAT`, `PRENOM_CANDIDAT`, `DATE_NAIS_CANDIDAT`, `LIEU_NAIS_CANDIDAT`, `NIVEAU_SCOL_CANDIDAT`, `ADRESSE_CANDIDAT`, `PRENOM_PERE`, `SEX_CONDIDAT`,`TYPE_CANDIDAT`,`NUM_PERMIS`, `DATE_LIV_PERMIS`, `TYPE_PERMIS`, `CATEGORIE_PERMIS`, `createur` ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO candidat (`NUM_INS`, `DATE_INS`,`NUMERO_NAT`,`NOM_CANDIDAT`, `PRENOM_CANDIDAT`, `DATE_NAIS_CANDIDAT`, `LIEU_NAIS_CANDIDAT`, `NIVEAU_SCOL_CANDIDAT`, `ADRESSE_CANDIDAT`, `PRENOM_PERE`, `SEX_CONDIDAT`,`TYPE_CANDIDAT`,`NUM_PERMIS`, `DATE_LIV_PERMIS`, `TYPE_PERMIS`, `CATEGORIE_PERMIS`, `createur` ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
     [
       numeroCandidat,
       Date_ins,
+      num_Nationnal,
       Nom,
       Prénom,
       Date_naissance,
@@ -872,6 +874,7 @@ app.put("/update_candidat", (req, res) => {
   const numeroCandidat = req.body.numeroCandidat;
   const numins = req.body.numins;
   const Date_ins = req.body.Date_ins;
+  const num_Nationnal = req.body.num_Nationnal;
   const Nom = req.body.Nom;
   const Prénom = req.body.Prénom;
   const Date_naissance = req.body.Date_naissance;
@@ -888,9 +891,10 @@ app.put("/update_candidat", (req, res) => {
   const DATE_INS = req.body.DATE_INS;
   const createur = req.body.createur;
   db.query(
-    "UPDATE candidat SET `NUM_INS`=?,  `NOM_CANDIDAT`=?, `PRENOM_CANDIDAT`= ?, `DATE_NAIS_CANDIDAT`=? , `LIEU_NAIS_CANDIDAT`= ?, `NIVEAU_SCOL_CANDIDAT`= ?, `ADRESSE_CANDIDAT`= ?, `PRENOM_PERE`= ?, `SEX_CONDIDAT` = ?, `TYPE_CANDIDAT`= ?,`DATE_LIV_PERMIS` = ?, `CATEGORIE_PERMIS` = ?, `TYPE_PERMIS` = ?, `DATE_INS` = ?   WHERE  `NUM_PERMIS` = ? and `DATE_INS` = ? and `NUM_INS` = ? ;",
+    "UPDATE candidat SET `NUM_INS`=?, `NUMERO_NAT`= ? , `NOM_CANDIDAT`=?, `PRENOM_CANDIDAT`= ?, `DATE_NAIS_CANDIDAT`=? , `LIEU_NAIS_CANDIDAT`= ?, `NIVEAU_SCOL_CANDIDAT`= ?, `ADRESSE_CANDIDAT`= ?, `PRENOM_PERE`= ?, `SEX_CONDIDAT` = ?, `TYPE_CANDIDAT`= ?,`DATE_LIV_PERMIS` = ?, `CATEGORIE_PERMIS` = ?, `TYPE_PERMIS` = ?, `DATE_INS` = ?   WHERE  `NUM_PERMIS` = ? and `DATE_INS` = ? and `NUM_INS` = ? ;",
     [
       numins,
+      num_Nationnal,
       Nom,
       Prénom,
       Date_naissance,
