@@ -40,9 +40,9 @@ const db = mysql.createPool({
   user: "transport_app",
   password: "B`;EfSsa*}5}",
   database: "transport_app",
- /* user: "root",
+/*  user: "root",
   password: "root",
-  database: "bdd", */ 
+  database: "bdd", */
   dateStrings: true,
 });
 
@@ -1140,21 +1140,6 @@ app.post("/add_travail", (req, res) => {
     }
   );
 });
-
-app.post("/Statistque/:id", (req, res) => {
-  const id = req.params.id;
-
-  const sqlquery = "call get_stat(?);";
-  db.query(sqlquery, [id], (err, result) => {
-    if (err) {
-      res.send(err.message);
-      console.log(err.message)
-    } else {
-      res.send('Done !! ');
-    }
-  });
-});
-
 
 //show  pdf file  in browser
 app.get("/file", (req, res) => {
