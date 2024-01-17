@@ -37,12 +37,12 @@ app.use(cors());
 
 const db = mysql.createPool({
   host: "localhost",
-  user: "transport_app",
-  password: "B`;EfSsa*}5}",
-  database: "transport_app",
- /* user: "root",
+  // user: "transport_app",
+  // password: "B`;EfSsa*}5}",
+  // database: "transport_app",
+  user: "root",
   password: "root",
-  database: "bdd", */ 
+  database: "bdd_test",
   dateStrings: true,
 });
 
@@ -1161,6 +1161,96 @@ app.get("/file", (req, res) => {
   displayPDF("test4.pdf", res);
 });
 
+
+// CRUD endpoints for chauffeur table
+
+// Create a new chauffeur
+app.post('/chauffeur', (req, res) => {
+    const { nom, prenom, date_naissance, adresse, telephone, automobile_id } = req.body;
+
+    const query = 'INSERT INTO chauffeur (nom, prenom, date_naissance, adresse, telephone, automobile_id) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(query, [nom, prenom, date_naissance, adresse, telephone, automobile_id], (error, results) => {
+        if (error) throw error;
+        res.json({ chauffeur_id: results.insertId });
+    });
+});
+
+// Get all chauffeurs
+app.get('/chauffeur', (req, res) => {
+    const query = 'SELECT * FROM chauffeur';
+    db.query(query, (error, results) => {
+        if (error) throw error;
+        res.json(results);
+    });
+});
+
+// Update chauffeur by ID
+app.put('/chauffeur/:chauffeur_id', (req, res) => {
+    const { nom, prenom, date_naissance, adresse, telephone, automobile_id } = req.body;
+    const chauffeur_id = req.params.chauffeur_id;
+
+    const query = 'UPDATE chauffeur SET nom=?, prenom=?, date_naissance=?, adresse=?, telephone=?, automobile_id=? WHERE chauffeur_id=?';
+    db.query(query, [nom, prenom, date_naissance, adresse, telephone, automobile_id, chauffeur_id], (error) => {
+        if (error) throw error;
+        res.json({ message: 'Chauffeur updated successfully' });
+    });
+});
+
+// Delete chauffeur by ID
+app.delete('/chauffeur/:chauffeur_id', (req, res) => {
+    const chauffeur_id = req.params.chauffeur_id;
+
+    const query = 'DELETE FROM chauffeur WHERE chauffeur_id=?';
+    db.query(query, [chauffeur_id], (error) => {
+        if (error) throw error;
+        res.json({ message: 'Chauffeur deleted successfully' });
+    });
+});
+
+// CRUD endpoints for automobile table
+
+// Create a new automobile
+app.post('/automobile', (req, res) => {
+    const { matricule, type, tonnage } = req.body;
+
+    const query = 'INSERT INTO automobile (matricule, type, tonnage) VALUES (?, ?, ?)';
+    db.query(query, [matricule, type, tonnage], (error, results) => {
+        if (error) throw error;
+        res.json({ automobile_id: results.insertId });
+    });
+});
+
+// Get all automobiles
+app.get('/automobile', (req, res) => {
+    const query = 'SELECT * FROM automobile';
+    db.query(query, (error, results) => {
+        if (error) throw error;
+        res.json(results);
+    });
+});
+
+// Update automobile by ID
+app.put('/automobile/:automobile_id', (req, res) => {
+    const { matricule, type, tonnage } = req.body;
+    const automobile_id = req.params.automobile_id;
+
+    const query = 'UPDATE automobile SET matricule=?, type=?, tonnage=? WHERE automobile_id=?';
+    db.query(query, [matricule, type, tonnage, automobile_id], (error) => {
+        if (error) throw error;
+        res.json({ message: 'Automobile updated successfully' });
+    });
+});
+
+// Delete automobile by ID
+app.delete('/automobile/:automobile_id', (req, res) => {
+    const automobile_id = req.params.automobile_id;
+
+    const query = 'DELETE FROM automobile WHERE automobile_id=?';
+    db.query(query, [automobile_id], (error) => {
+        if (error) throw error;
+        res.json({ message: 'Automobile deleted successfully' });
+    });
+});
 app.listen(3001, () => {
   console.log("it works");
 });
