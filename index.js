@@ -36,12 +36,12 @@ app.use(cors());
 // );
 
 const db = mysql.createPool({
- /* host: "localhost",
+  /* host: "localhost",
   user: "transport_app",
   password: "B`;EfSsa*}5}",*/
   user: "root",
   password: "root",
-  database: "bdd_test",
+  database: "transport_app_test",
   dateStrings: true,
 });
 
@@ -136,6 +136,7 @@ app.put("/pass_Center_update", (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
 app.put("/pass_Direction_update", (req, res) => {
   const oldpass = req.body.oldpass;
   const storedpass = req.body.storedpass;
@@ -478,16 +479,17 @@ app.get("/api/get_form/:numeroAgrement", (req, res) => {
   });
 });
 app.get("/api/get_candidat", (req, res) => {
-  const sqlquery = "SELECT * FROM candidat;";
+  const sqlquery =
+    "SELECT c.NUM_INS,c.DATE_INS,c.NUMERO_NAT,c.NOM_CANDIDAT,c.PRENOM_CANDIDAT,c.PRENOM_PERE,c.DATE_NAIS_CANDIDAT,c.LIEU_NAIS_CANDIDAT,c.NIVEAU_SCOL_CANDIDAT,c.ADRESSE_CANDIDAT,c.SEX_CONDIDAT,c.TYPE_CANDIDAT,c.NUM_PERMIS,c.DATE_LIV_PERMIS,c.DATE_EXP_PERMIS,c.TYPE_PERMIS,c.CATEGORIE_PERMIS,c.CREATEUR,c.ID_TYPE_FORMATION,c.ID_VEHICULE,c.TELE_FIRST,c.TELE_SECOND,c.MONTANT,c.RESTE,v.lib VEHICULE,tf.LIB FORMATION, tf.PRIX FROM candidat C LEFT JOIN type_formation TF ON C.ID_TYPE_FORMATION = tf.id LEFT JOIN vehicule v ON v.ID = c.ID_VEHICULE;";
   db.query(sqlquery, (err, result) => {
     res.send(result);
   });
 });
 app.get("/api/get_candidat/:createur", (req, res) => {
-
   const createur = req.params.createur;
-  const sqlquery = "SELECT * FROM candidat where createur = ?;";
-  db.query(sqlquery,[createur], (err, result) => {
+  const sqlquery =
+    "SELECT c.NUM_INS,c.DATE_INS,c.NUMERO_NAT,c.NOM_CANDIDAT,c.PRENOM_CANDIDAT,c.PRENOM_PERE,c.DATE_NAIS_CANDIDAT,c.LIEU_NAIS_CANDIDAT,c.NIVEAU_SCOL_CANDIDAT,c.ADRESSE_CANDIDAT,c.SEX_CONDIDAT,c.TYPE_CANDIDAT,c.NUM_PERMIS,c.DATE_LIV_PERMIS,c.DATE_EXP_PERMIS,c.TYPE_PERMIS,c.CATEGORIE_PERMIS,c.CREATEUR,c.ID_TYPE_FORMATION,c.ID_VEHICULE,c.TELE_FIRST,c.TELE_SECOND,c.MONTANT,c.RESTE,v.lib VEHICULE,tf.LIB FORMATION ,  tf.PRIX FROM candidat C LEFT JOIN type_formation TF ON C.ID_TYPE_FORMATION = tf.id LEFT JOIN vehicule v ON v.ID = c.ID_VEHICULE where C.CREATEUR = ?;";
+  db.query(sqlquery, [createur], (err, result) => {
     res.send(result);
   });
 });
@@ -869,6 +871,137 @@ app.post("/Add_condidat", (req, res) => {
   );
 });
 
+// API endpoint to add a new Candidat
+app.post("/api/candidats", (req, res) => {
+  const {
+    NUM_INS,
+    DATE_INS,
+    NUMERO_NAT,
+    NOM_CANDIDAT,
+    PRENOM_CANDIDAT,
+    PRENOM_PERE,
+    DATE_NAIS_CANDIDAT,
+    LIEU_NAIS_CANDIDAT,
+    NIVEAU_SCOL_CANDIDAT,
+    ADRESSE_CANDIDAT,
+    SEX_CONDIDAT,
+    TYPE_CANDIDAT,
+    NUM_PERMIS,
+    TYPE_PERMIS,
+    CATEGORIE_PERMIS,
+    CREATEUR,
+    ID_TYPE_FORMATION,
+    ID_VEHICULE,
+    TELE_FIRST,
+    TELE_SECOND,
+    MONTANT,
+    RESTE,
+  } = req.body;
+
+  const query = `
+    INSERT INTO candidat (
+      NUM_INS, DATE_INS, NUMERO_NAT, NOM_CANDIDAT, PRENOM_CANDIDAT, PRENOM_PERE,
+      DATE_NAIS_CANDIDAT, LIEU_NAIS_CANDIDAT, NIVEAU_SCOL_CANDIDAT, ADRESSE_CANDIDAT, SEX_CONDIDAT,
+      TYPE_CANDIDAT, NUM_PERMIS, TYPE_PERMIS, CATEGORIE_PERMIS,
+      CREATEUR, ID_TYPE_FORMATION, ID_VEHICULE,TELE_FIRST,TELE_SECOND, MONTANT, RESTE
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? , ?, ?, ?);
+  `;
+  const values = [
+    NUM_INS,
+    DATE_INS,
+    NUMERO_NAT,
+    NOM_CANDIDAT,
+    PRENOM_CANDIDAT,
+    PRENOM_PERE,
+    DATE_NAIS_CANDIDAT,
+    LIEU_NAIS_CANDIDAT,
+    NIVEAU_SCOL_CANDIDAT,
+    ADRESSE_CANDIDAT,
+    SEX_CONDIDAT,
+    TYPE_CANDIDAT,
+    NUM_PERMIS,
+    TYPE_PERMIS,
+    CATEGORIE_PERMIS,
+    CREATEUR,
+    ID_TYPE_FORMATION,
+    ID_VEHICULE,
+    TELE_FIRST,
+    TELE_SECOND,
+    MONTANT,
+    RESTE,
+  ];
+
+  if (
+    isValueMissing(NUM_INS) ||
+    isValueMissing(DATE_INS) ||
+    isValueMissing(NOM_CANDIDAT) ||
+    isValueMissing(PRENOM_CANDIDAT) ||
+    isValueMissing(PRENOM_PERE) ||
+    isValueMissing(DATE_NAIS_CANDIDAT) ||
+    isValueMissing(NIVEAU_SCOL_CANDIDAT) ||
+    isValueMissing(ADRESSE_CANDIDAT) ||
+    isValueMissing(SEX_CONDIDAT) ||
+    isValueMissing(NUM_PERMIS) ||
+    isValueMissing(TYPE_PERMIS) ||
+    isValueMissing(CATEGORIE_PERMIS) ||
+    isValueMissing(ID_TYPE_FORMATION) ||
+    isValueMissing(ID_VEHICULE) ||
+    isValueMissing(TELE_FIRST) ||
+    isValueMissing(MONTANT) ||
+    isValueMissing(RESTE)
+  ) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error("Error inserting into the database:", err);
+      res.status(500).json({ error: "Database insertion error" });
+      return;
+    }
+    res
+      .status(201)
+      .json({ message: "Candidat added successfully", id: result.insertId });
+  });
+});
+
+// Update candidate details API
+app.put("/updateCandidat/:NUM_INS/:DATE_INS/:NUM_PERMIS", (req, res) => {
+  const { NUM_INS, DATE_INS, NUM_PERMIS } = req.params;
+  const candidat = req.body;
+  let sql = `UPDATE candidat SET NUMERO_NAT = ?, NOM_CANDIDAT = ?, PRENOM_CANDIDAT = ?, PRENOM_PERE = ?, DATE_NAIS_CANDIDAT = ?, LIEU_NAIS_CANDIDAT = ?, NIVEAU_SCOL_CANDIDAT = ?, ADRESSE_CANDIDAT = ?, SEX_CONDIDAT = ?, TYPE_CANDIDAT = ?, DATE_LIV_PERMIS = ?, DATE_EXP_PERMIS = ?, TYPE_PERMIS = ?, CATEGORIE_PERMIS = ?, CREATEUR = ?, ID_TYPE_FORMATION = ?, ID_VEHICULE = ?, TELE_FIRST = ?, TELE_SECOND = ?, MONTANT = ?, RESTE = ? WHERE NUM_INS = ? AND DATE_INS = ? AND NUM_PERMIS = ?`;
+  const values = [
+    candidat.NUMERO_NAT,
+    candidat.NOM_CANDIDAT,
+    candidat.PRENOM_CANDIDAT,
+    candidat.PRENOM_PERE,
+    candidat.DATE_NAIS_CANDIDAT,
+    candidat.LIEU_NAIS_CANDIDAT,
+    candidat.NIVEAU_SCOL_CANDIDAT,
+    candidat.ADRESSE_CANDIDAT,
+    candidat.SEX_CONDIDAT,
+    candidat.TYPE_CANDIDAT,
+    candidat.DATE_LIV_PERMIS,
+    candidat.DATE_EXP_PERMIS,
+    candidat.TYPE_PERMIS,
+    candidat.CATEGORIE_PERMIS,
+    candidat.CREATEUR,
+    candidat.ID_TYPE_FORMATION,
+    candidat.ID_VEHICULE,
+    candidat.TELE_FIRST,
+    candidat.TELE_SECOND,
+    candidat.MONTANT,
+    candidat.RESTE,
+    NUM_INS,
+    DATE_INS,
+    NUM_PERMIS,
+  ];
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    res.send("Candidat updated successfully");
+  });
+});
 app.put("/update_candidat", (req, res) => {
   const numeroCandidat = req.body.numeroCandidat;
   const numins = req.body.numins;
@@ -1140,6 +1273,43 @@ app.post("/add_travail", (req, res) => {
   );
 });
 
+// API endpoint to get type_formation data
+app.get("/api/type_formation", (req, res) => {
+  const query = "SELECT id, lib, prix FROM type_formation";
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching data:", err);
+      res.status(500).json({ error: "Database error" });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// API endpoint to get vehicule data
+app.get("/api/vehicules", (req, res) => {
+  const query = "SELECT id, lib FROM vehicule";
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching data:", err);
+      res.status(500).json({ error: "Database error" });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.post("/api/add-vehicule", (req, res) => {
+  const { lib } = req.body;
+  const sql = "INSERT INTO vehicule (id, lib) VALUES (?,?)";
+  db.query(sql, [0, lib], (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ id: result.insertId, lib });
+  });
+});
 app.post("/Statistque/:id", (req, res) => {
   const id = req.params.id;
 
@@ -1147,13 +1317,12 @@ app.post("/Statistque/:id", (req, res) => {
   db.query(sqlquery, [id], (err, result) => {
     if (err) {
       res.send(err.message);
-      console.log(err.message)
+      console.log(err.message);
     } else {
-      res.send('Done !! ');
+      res.send("Done !! ");
     }
   });
 });
-
 
 //show  pdf file  in browser
 app.get("/file", (req, res) => {
@@ -1177,4 +1346,8 @@ const displayPDF = (filename, res) => {
       res.end(data);
     }
   });
+};
+
+const isValueMissing = (value) => {
+  return value === undefined || value === null || value === "";
 };
