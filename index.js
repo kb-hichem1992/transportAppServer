@@ -10,7 +10,8 @@ const path = require("path");
 // const session = require("express-session");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
-
+const PDFDocument = require("pdfkit");
+//const { PDFDocument, rgb, StandardFonts } = require("pdf-lib");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("report/fichier"));
@@ -37,11 +38,11 @@ app.use(cors());
 
 const db = mysql.createPool({
   host: "localhost",
-  user: "transport_app",
-  password: "B`;EfSsa*}5}",
-  /*user: "root",
+  /* user: "transport_app",
+  password: "B`;EfSsa*}5}",*/
+  user: "root",
   password: "root",
-  database: "transport_app_test",*/
+  database: "transport_app_test",
   dateStrings: true,
 });
 
@@ -74,6 +75,169 @@ app.post("/register_centre", (req, res) => {
     }
   });
 });
+
+// app.post("/generate-bon-pdf", (req, res) => {
+//   const { NUM_INS, DATE_INS, NUM_PERMIS } = req.body;
+//   const query =
+//     " SELECT * FROM candidat c Join type_formation  tf  on  c.ID_TYPE_FORMATION = tf.id  WHERE NUM_INS= ? and DATE_INS= ? and NUM_PERMIS= ? ";
+//   db.query(query, [NUM_INS, DATE_INS, NUM_PERMIS], (err, result) => {
+//     if (err) throw err;
+//     if (result.length > 0) {
+//       const candidat = result[0];
+//       const doc = new PDFDocument({ size: "A5", lang: "ar" });
+//       const fontPath = path.join(
+//         __dirname,
+//         "report",
+//         "fichier",
+//         "Lateef-Medium.ttf"
+//       );
+//       // Chemin vers la police arabe
+//       let buffers = [];
+//       doc.on("data", buffers.push.bind(buffers));
+//       doc.on("end", () => {
+//         let pdfData = Buffer.concat(buffers);
+//         res.writeHead(200, {
+//           "Content-Type": "application/pdf",
+//           "Content-Disposition": "attachment;filename=bon_de_paiement.pdf",
+//           "Content-Length": pdfData.length,
+//         });
+//         res.end(pdfData);
+//       });
+
+//       // Utiliser la police arabe
+//       doc.registerFont("Lateef", fontPath);
+//       doc.font("Lateef");
+//       // Ajouter un en-tête
+//       doc.fontSize(30).text(" الدفع وصل", { align: "center" });
+//       // Ligne de séparation
+//       doc.moveTo(50, 120).lineTo(370, 120).stroke();
+//       // Espacement et mise en forme des informations du candidat
+//       doc.fontSize(20).moveDown();
+//       doc.text(`  ${candidat.NUM_INS}  : التسجيل رقم `, { align: "right" });
+//       doc.moveDown();
+//       doc.text(`  ${candidat.NOM_CANDIDAT} : الاسم `, { align: "right" });
+//       doc.moveDown();
+//       doc.text(`  ${candidat.PRENOM_CANDIDAT} : اللقب`, { align: "right" });
+//       doc.moveDown();
+//       doc.text(`دج  ${candidat.prix} : السعر`, { align: "right" });
+//       doc.moveDown();
+//       doc.text(`دج  ${candidat.MONTANT} : المدفوع المبلغ `, { align: "right" });
+//       doc.moveDown();
+//       doc.text(`دج  ${candidat.RESTE} : المتبقي المبلغ `, { align: "right" });
+//       // Ajouter une ligne de séparation avant le pied de page
+//       doc.moveTo(50, 470).lineTo(370, 470).stroke();
+//       doc.moveDown();
+//       // Ajouter un pied de page
+//       doc
+//         .fontSize(20)
+//         .text("   لدفعك.  شكرًا", { align: "left"});
+//       doc.end();
+//     } else {
+//       res.status(404).send("Candidat non trouvé");
+//     }
+//   });
+// });
+
+// app.post("/generate-bon-pdf", (req, res) => { 
+//   async function createPdf() {
+//     const doc = new PDFDocument({
+//       size: 'A4',
+//       layout: 'portrait',
+//     });
+  
+//     doc.pipe(fs.createWriteStream('Professional_Competency_Certificate.pdf'));
+  
+//     // Load the Arabic font
+//      doc.font('node_modules/@fontsource/noto-naskh-arabic/files/noto-naskh-arabic-all-400-normal.woff');
+  
+//     // Add text to the PDF
+//     doc.fontSize(16).text('مركز التكوين للحصول على شهادة الكفاءة المهنية', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(14).text('لسائقي مركبات نقل الأشخاص والبضائع', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.moveDown();
+//     doc.fontSize(12).text('بيانات الاتصال:', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('الهاتف: 07 81 26 87 88 / 0791 07 07 72', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('البريد الإلكتروني: assim.centre@gmail.com', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.moveDown();
+//     doc.fontSize(10).text('العنوان: م 01 رقم 12 ط و 19 الشطية', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('رقم التسجيل: 283-2024-0255', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('تاريخ التسجيل: 2025/02/12', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('تاريخ الدفع: 2025/01/12', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('الوقت: 14:00', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.moveDown();
+//     doc.fontSize(10).text('تكلفة التكوين: 17000 د ج', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('المبلغ المدفوع: 1000 د ج', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('المبلغ المتبقي: 7000 د ج', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.moveDown();
+//     doc.fontSize(10).text('ملاحظة: تكلفة التكوين محددة من طرف وزارة النقل حسب المرسوم التنفيذي رقم 1028: ع / و', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.fontSize(10).text('يرجى الاحتفاظ بهذه الوصل.', {
+//       align: 'right',
+//       direction: 'rtl',
+//     });
+  
+//     doc.end();
+//   }
+  
+//   createPdf().catch(console.error);
+  
+
+//   createPdf().catch(console.error);
+// });
 
 app.post("/register_service", (req, res) => {
   const username = req.body.username;
@@ -480,7 +644,7 @@ app.get("/api/get_form/:numeroAgrement", (req, res) => {
 });
 app.get("/api/get_candidat", (req, res) => {
   const sqlquery =
-    "SELECT c.NUM_INS,c.DATE_INS,c.NUMERO_NAT,c.NOM_CANDIDAT,c.PRENOM_CANDIDAT,c.PRENOM_PERE,c.DATE_NAIS_CANDIDAT,c.LIEU_NAIS_CANDIDAT,c.NIVEAU_SCOL_CANDIDAT,c.ADRESSE_CANDIDAT,c.SEX_CONDIDAT,c.TYPE_CANDIDAT,c.NUM_PERMIS,c.DATE_LIV_PERMIS,c.DATE_EXP_PERMIS,c.TYPE_PERMIS,c.CATEGORIE_PERMIS,c.CREATEUR,c.ID_TYPE_FORMATION,c.ID_VEHICULE,c.TELE_FIRST,c.TELE_SECOND,c.MONTANT,c.RESTE,v.lib VEHICULE,tf.LIB FORMATION, tf.PRIX FROM candidat C LEFT JOIN type_formation TF ON C.ID_TYPE_FORMATION = tf.id LEFT JOIN vehicule v ON v.ID = c.ID_VEHICULE;";
+    "SELECT c.NUM_INS,c.DATE_INS,c.NUMERO_NAT,c.NOM_CANDIDAT,c.PRENOM_CANDIDAT,c.PRENOM_PERE,c.DATE_NAIS_CANDIDAT,c.LIEU_NAIS_CANDIDAT,c.NIVEAU_SCOL_CANDIDAT,c.ADRESSE_CANDIDAT,c.SEX_CONDIDAT,c.TYPE_CANDIDAT,c.NUM_PERMIS,c.DATE_LIV_PERMIS,c.DATE_EXP_PERMIS,c.TYPE_PERMIS,c.CATEGORIE_PERMIS,c.CREATEUR,c.ID_TYPE_FORMATION,c.ID_VEHICULE,c.TELE_FIRST,c.TELE_SECOND,c.MONTANT,c.RESTE,v.lib VEHICULE,tf.LIB FORMATION, tf.PRIX FROM candidat c LEFT JOIN type_formation tf ON c.ID_TYPE_FORMATION = tf.id LEFT JOIN vehicule v ON v.ID = c.ID_VEHICULE;";
   db.query(sqlquery, (err, result) => {
     res.send(result);
   });
@@ -488,7 +652,7 @@ app.get("/api/get_candidat", (req, res) => {
 app.get("/api/get_candidat/:createur", (req, res) => {
   const createur = req.params.createur;
   const sqlquery =
-    "SELECT c.NUM_INS,c.DATE_INS,c.NUMERO_NAT,c.NOM_CANDIDAT,c.PRENOM_CANDIDAT,c.PRENOM_PERE,c.DATE_NAIS_CANDIDAT,c.LIEU_NAIS_CANDIDAT,c.NIVEAU_SCOL_CANDIDAT,c.ADRESSE_CANDIDAT,c.SEX_CONDIDAT,c.TYPE_CANDIDAT,c.NUM_PERMIS,c.DATE_LIV_PERMIS,c.DATE_EXP_PERMIS,c.TYPE_PERMIS,c.CATEGORIE_PERMIS,c.CREATEUR,c.ID_TYPE_FORMATION,c.ID_VEHICULE,c.TELE_FIRST,c.TELE_SECOND,c.MONTANT,c.RESTE,v.lib VEHICULE,tf.LIB FORMATION ,  tf.PRIX FROM candidat C LEFT JOIN type_formation TF ON C.ID_TYPE_FORMATION = tf.id LEFT JOIN vehicule v ON v.ID = c.ID_VEHICULE where C.CREATEUR = ?;";
+    "SELECT c.NUM_INS,c.DATE_INS,c.NUMERO_NAT,c.NOM_CANDIDAT,c.PRENOM_CANDIDAT,c.PRENOM_PERE,c.DATE_NAIS_CANDIDAT,c.LIEU_NAIS_CANDIDAT,c.NIVEAU_SCOL_CANDIDAT,c.ADRESSE_CANDIDAT,c.SEX_CONDIDAT,c.TYPE_CANDIDAT,c.NUM_PERMIS,c.DATE_LIV_PERMIS,c.DATE_EXP_PERMIS,c.TYPE_PERMIS,c.CATEGORIE_PERMIS,c.CREATEUR,c.ID_TYPE_FORMATION,c.ID_VEHICULE,c.TELE_FIRST,c.TELE_SECOND,c.MONTANT,c.RESTE,v.lib VEHICULE,tf.LIB FORMATION ,  tf.PRIX FROM candidat c LEFT JOIN type_formation tf ON c.ID_TYPE_FORMATION = tf.id LEFT JOIN vehicule v ON v.ID = c.ID_VEHICULE where c.CREATEUR = ?;";
   db.query(sqlquery, [createur], (err, result) => {
     res.send(result);
   });
@@ -675,7 +839,7 @@ app.put("/Printed", (req, res) => {
 app.get("/api/get_brevet/:numeroAgrement", (req, res) => {
   const numeroAgrement = req.params.numeroAgrement;
   const sqlquery =
-    "SELECT passe.PRINT, passe.BREVET, candidat.NOM_CANDIDAT, candidat.PRENOM_CANDIDAT, passe.DATE_EMISSION, passe.LIV_BREVET, passe.EXP_BREVET, formation.TYPE_FORMATION, passe.GROUPE,passe.NUMERO_FORMATION, passe.NUM_INS, passe.NUM_PERMIS, passe.DATE_INS, passe.NUMERO_AGREMENT, passe.GROUPE FROM ((passe INNER JOIN candidat ON candidat.NUM_INS = passe.NUM_INS AND candidat.DATE_INS = passe.DATE_INS AND candidat.NUM_PERMIS = passe.NUM_PERMIS) INNER JOIN formation ON formation.NUMERO_FORMATION = passe.NUMERO_FORMATION  AND formation.NUMERO_AGREMENT = passe.NUMERO_AGREMENT AND formation.GROUPE = passe.GROUPE) where passe.NUMERO_AGREMENT = ? and passe.BREVET != '';";
+    "SELECT passe.PRINT, passe.BREVET, candidat.NOM_CANDIDAT, candidat.PRENOM_CANDIDAT,candidat.RESTE, passe.DATE_EMISSION, passe.LIV_BREVET, passe.EXP_BREVET, formation.TYPE_FORMATION, passe.GROUPE,passe.NUMERO_FORMATION, passe.NUM_INS, passe.NUM_PERMIS, passe.DATE_INS, passe.NUMERO_AGREMENT, passe.GROUPE FROM ((passe INNER JOIN candidat ON candidat.NUM_INS = passe.NUM_INS AND candidat.DATE_INS = passe.DATE_INS AND candidat.NUM_PERMIS = passe.NUM_PERMIS) INNER JOIN formation ON formation.NUMERO_FORMATION = passe.NUMERO_FORMATION  AND formation.NUMERO_AGREMENT = passe.NUMERO_AGREMENT AND formation.GROUPE = passe.GROUPE) where passe.NUMERO_AGREMENT = ? and passe.BREVET != '';";
   db.query(sqlquery, [numeroAgrement], (err, result) => {
     if (err) {
       console.log(err);
