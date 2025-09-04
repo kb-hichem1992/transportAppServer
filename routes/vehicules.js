@@ -2,96 +2,243 @@ const express = require("express");
 const db = require("../db");
 const router = express.Router();
 
-router.post("/add_vehicule/:num_enregistrement", (req, res) => {
-  const NUMERO_ENREGISTREMENT = req.params.num_enregistrement;
-  const MATRECULE = req.body.MATRECULE;
-  const GENRE = req.body.GENRE;
-  const MARQUE = req.body.MARQUE;
-  const PTC = req.body.PTC;
-  const PTAC = req.body.PTAC;
-  const CU = req.body.CU;
-  const NOMBRE_PLACE = req.body.NOMBRE_PLACE;
-  const NUM_INS = req.body.NUM_INS;
-  const DATE_INS = req.body.DATE_INS;
-  const NUM_PERMIS = req.body.NUM_PERMIS;
+const promisedb = db.promise();
 
-  db.query(
-    "INSERT INTO `vehicule` (`MATRECULE`, `NUMERO_ENREGISTREMENT`, `GENRE`, `MARQUE`, `PTC`, `PTAC`, `CU`, `NOMBRE_PLACE`, `NUM_INS`, `DATE_INS`, `NUM_PERMIS`) VALUES (?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?);",
-    [
-      MATRECULE,
-      NUMERO_ENREGISTREMENT,
-      "marchandise",
-      MARQUE,
-      PTC,
-      PTAC,
-      CU,
-      NOMBRE_PLACE,
-      NUM_INS,
-      DATE_INS,
-      NUM_PERMIS,
-    ],
-    (err, result) => {
-      if (err && err.errno === 1062) {
-        res.send(result.data.message("العربة مسجلة من قبل"));
-      } else {
-        res.send(result.data.message("  تم التسجيل بنجاح "));
-      }
-    }
-  );
-});
 
-router.get("/api/get_veh_Mar", (req, res) => {
-  const sqlquery =
-    "select *  from vehicule, operateur where vehicule.NUMERO_ENREGISTREMENT = operateur.NUMERO_ENREGISTREMENT and vehicule.GENRE ='marchandise';";
-  db.query(sqlquery, (err, result) => {
-    res.send(result);
+// Validation middleware
+const validateVehicle = (req, res, next) => {
+  const { LIB, TONNAGE } = req.body;
+  
+  if (!LIB || typeof LIB !== 'string' || LIB.trim().length === 0) {
+    return res.status(400).json({
+      error: 'LIB is required and must be a non-empty string'
+    });
+  }
+  
+  if (LIB.length > 100) {
+    return res.status(400).json({
+      error: 'LIB must be 100 characters or less'
+    });
+  }
+  
+  if (TONNAGE !== undefined && (isNaN(TONNAGE) || TONNAGE < 0)) {
+    return res.status(400).json({
+      error: 'TONNAGE must be a positive number'
+    });
+  }
+  
+  next();
+};
+
+// Error handler middleware
+const handleDatabaseError = (error, res) => {
+  console.error('Database error:', error);
+  
+  if (error.code === 'ER_DUP_ENTRY') {
+    return res.status(409).json({
+      error: 'Vehicle with this LIB already exists'
+    });
+  }
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+    return res.status(409).json({
+      error: 'Vehicule attached to a driver '
+    });
+  }
+  
+  return res.status(500).json({
+    error: 'Internal server error'
   });
+};
+
+// CRUD Routes
+
+// CREATE - Add a new vehicle
+router.post('/vehicules', validateVehicle, async (req, res) => {
+  try {
+    const { LIB, TONNAGE = 0 } = req.body;
+    
+    const [result] = await promisedb.execute(
+      'INSERT INTO vehicule (LIB, TONNAGE) VALUES (?, ?)',
+      [LIB.trim(), parseFloat(TONNAGE)]
+    );
+    
+    const newVehicle = {
+      ID: result.insertId,
+      LIB: LIB.trim(),
+      TONNAGE: parseFloat(TONNAGE)
+    };
+    
+    res.status(201).json({
+      message: 'Vehicle created successfully',
+      data: newVehicle
+    });
+  } catch (error) {
+    handleDatabaseError(error, res);
+  }
 });
 
-router.delete("/delete_vehicule/:MATRECULE", (req, res) => {
-  const MATRECULE = req.params.MATRECULE;
-  const sqlquery = "delete from vehicule where MATRECULE =?;";
-  db.query(sqlquery, [MATRECULE], (err, result) => {
-    if (err) {
-      console.log(err);
+// READ - Get all vehicles
+router.get('/vehicules', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = '' } = req.query;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const offset = (pageNum - 1) * limitNum;
+    
+    let vehicles, total;
+    
+    if (search && search.trim() !== '') {
+      const searchTerm = `%${search.trim()}%`;
+      
+      // Get vehicles with search
+      const vehiclesQuery = `SELECT * FROM vehicule WHERE LIB LIKE ? ORDER BY ID LIMIT ${limitNum} OFFSET ${offset}`;
+      const [vehiclesRows] = await promisedb.execute(vehiclesQuery, [searchTerm]);
+      vehicles = vehiclesRows;
+      
+      // Get total count with search
+      const [countRows] = await promisedb.execute('SELECT COUNT(*) as total FROM vehicule WHERE LIB LIKE ?', [searchTerm]);
+      total = countRows[0].total;
+      
     } else {
-      res.send("row deleted");
+      // Get all vehicles
+      const vehiclesQuery = `SELECT * FROM vehicule ORDER BY ID LIMIT ${limitNum} OFFSET ${offset}`;
+      const [vehiclesRows] = await promisedb.execute(vehiclesQuery);
+      vehicles = vehiclesRows;
+      
+      // Get total count
+      const [countRows] = await promisedb.execute('SELECT COUNT(*) as total FROM vehicule');
+      total = countRows[0].total;
     }
-  });
+    
+    res.json({
+      data: vehicles,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: total,
+        pages: Math.ceil(total / limitNum)
+      }
+    });
+    
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message 
+    });
+  }
 });
 
-router.get("/api/get_veh_voyag", (req, res) => {
-  const sqlquery =
-    "select vehicule.IMMATRECULATION, vehicule.MARQUE,vehicule.NOMBRE_PLACE, operateur.NOM_OPERATEUR, operateur.PRENOM_OPERATEUR, operateur.PRENOM_PERE  from vehicule, operateur where vehicule.GENRE = 'Voyageur' and vehicule.NUMERO_OPERATEUR = operateur.NUMERO_OPERATEUR;";
-  db.query(sqlquery, (err, result) => {
-    res.send(result);
-  });
+// READ - Get vehicle by ID
+router.get('/vehicules/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        error: 'Invalid vehicle ID'
+      });
+    }
+    
+    const [vehicles] = await promisedb.execute(
+      'SELECT * FROM vehicule WHERE ID = ?',
+      [parseInt(id)]
+    );
+    
+    if (vehicles.length === 0) {
+      return res.status(404).json({
+        error: 'Vehicle not found'
+      });
+    }
+    
+    res.json({
+      data: vehicles[0]
+    });
+  } catch (error) {
+    handleDatabaseError(error, res);
+  }
 });
 
-router.post("/api/add-vehicule", (req, res) => {
-  const { lib } = req.body;
-  const sql = "INSERT INTO vehicule (id, lib) VALUES (?,?)";
-  db.query(sql, [0, lib], (err, result) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+// UPDATE - Update vehicle by ID
+router.put('/vehicules/:id', validateVehicle, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { LIB, TONNAGE = 0 } = req.body;
+    
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        error: 'Invalid vehicle ID'
+      });
     }
-    res.json({ id: result.insertId, lib });
-  });
+    
+    const [result] = await promisedb.execute(
+      'UPDATE vehicule SET LIB = ?, TONNAGE = ? WHERE ID = ?',
+      [LIB.trim(), parseFloat(TONNAGE), parseInt(id)]
+    );
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        error: 'Vehicle not found'
+      });
+    }
+    
+    const updatedVehicle = {
+      ID: parseInt(id),
+      LIB: LIB.trim(),
+      TONNAGE: parseFloat(TONNAGE)
+    };
+    
+    res.json({
+      message: 'Vehicle updated successfully',
+      data: updatedVehicle
+    });
+  } catch (error) {
+    handleDatabaseError(error, res);
+  }
 });
 
-router.get("/api/vehicules", (req, res) => {
-  const query = "SELECT id, lib FROM vehicule";
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching data:", err);
-      res.status(500).json({ error: "Database error" });
-      return;
+
+
+// DELETE - Delete vehicle by ID
+router.delete('/vehicules/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id || isNaN(id)) {
+      return res.status(400).json({
+        error: 'Invalid vehicle ID'
+      });
     }
-    res.json(results);
-  });
+    
+    // First check if vehicle exists
+    const [vehicles] = await promisedb.execute(
+      'SELECT * FROM vehicule WHERE ID = ?',
+      [parseInt(id)]
+    );
+    
+    if (vehicles.length === 0) {
+      return res.status(404).json({
+        error: 'Vehicle not found'
+      });
+    }
+    
+    const [result] = await promisedb.execute(
+      'DELETE FROM vehicule WHERE ID = ?',
+      [parseInt(id)]
+    );
+    
+    res.json({
+      message: 'Vehicle deleted successfully',
+      data: vehicles[0]
+    });
+  } catch (error) {
+    handleDatabaseError(error, res);
+  }
 });
+
+
+
+
+
 
 module.exports = router;
-
-

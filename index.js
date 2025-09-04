@@ -18,6 +18,7 @@ const travailRouter = require("./routes/travail");
 const vehiculesRouter = require("./routes/vehicules");  
 const candidatsRouter = require("./routes/candidats");
 const reportsRouter = require("./routes/reports");
+
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
@@ -34,15 +35,15 @@ app.use(authRouter); // public (login/register)
 
 // Require JWT for everything below
 app.use(authenticateToken);
-
+app.use(vehiculesRouter);
 app.use(miscRouter);
 app.use(candidatsRouter);
 app.use(operateursRouter);
 app.use(formationsRouter);
 app.use(passeRouter);
 app.use(travailRouter);
-app.use(vehiculesRouter);
 app.use(reportsRouter);
+app.use(vehiculesRouter);
 
 // Start server
 app.listen(config.server.port, () => {
